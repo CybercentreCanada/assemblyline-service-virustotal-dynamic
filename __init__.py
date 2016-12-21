@@ -1,0 +1,1 @@
+from assemblyline.al.service.virustotal_dynamic.virustotal_dynamic import VirusTotalDynamic
