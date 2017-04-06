@@ -6,6 +6,7 @@ import logging
 from assemblyline.al.common.result import Result, ResultSection, Classification, SCORE, TEXT_FORMAT
 from assemblyline.al.common.av_result import VirusHitTag
 from assemblyline.al.service.base import ServiceBase
+from assemblyline.common.exceptions import RecoverableError
 
 log = logging.getLogger('assemblyline.al.common.result')
 
@@ -31,7 +32,7 @@ class VirusTotalDynamic(ServiceBase):
     SERVICE_CATEGORY = "Dynamic Analysis"
     SERVICE_DESCRIPTION = "This service submits files/URLs to VirusTotal for analysis."
     SERVICE_ENABLED = False
-    SERVICE_REVISION = ServiceBase.parse_revision('$Id: a3a1af157da8ac886360e0d7272d8faa369ea881 $')
+    SERVICE_REVISION = ServiceBase.parse_revision('$Id$')
     SERVICE_STAGE = "CORE"
     SERVICE_TIMEOUT = 600
     SERVICE_IS_EXTERNAL = True
@@ -78,7 +79,16 @@ class VirusTotalDynamic(ServiceBase):
         files = {"file": f}
         values = {"apikey": self.api_key}
         r = requests.post(url, values, files=files)
-        json_response = r.json()
+        try:
+            json_response = r.json()
+        except ValueError:
+            self.log.warn("Invalid response from VirusTotal, "
+                          "HTTP code: %s, "
+                          "content length: %i, "
+                          "headers: %s" % (r.status_code, len(r.content), repr(r.headers)))
+            if len(r.content) == 0:
+                raise RecoverableError("VirusTotal didn't return a JSON object, HTTP code %s" % r.status_code)
+            raise
 
         # File has been scanned, if response is successful, let's get the response
 
