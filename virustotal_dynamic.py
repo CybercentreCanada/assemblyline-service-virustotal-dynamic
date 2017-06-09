@@ -8,7 +8,7 @@ from assemblyline.al.common.av_result import VirusHitTag
 from assemblyline.al.service.base import ServiceBase
 from assemblyline.common.exceptions import RecoverableError
 
-log = logging.getLogger('assemblyline.al.common.result')
+log = logging.getLogger('assemblyline.svc.common.result')
 
 
 class VTException(Exception):
