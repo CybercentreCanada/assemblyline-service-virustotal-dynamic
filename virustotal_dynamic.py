@@ -29,7 +29,7 @@ class AvHitSection(ResultSection):
 
 
 class VirusTotalDynamic(ServiceBase):
-    SERVICE_CATEGORY = "Dynamic Analysis"
+    SERVICE_CATEGORY = "External"
     SERVICE_DESCRIPTION = "This service submits files/URLs to VirusTotal for analysis."
     SERVICE_ENABLED = False
     SERVICE_REVISION = ServiceBase.parse_revision('$Id$')
