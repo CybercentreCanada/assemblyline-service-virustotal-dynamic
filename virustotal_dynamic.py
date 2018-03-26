@@ -2,11 +2,9 @@ import json
 import time
 import logging
 
-
 from assemblyline.al.common.result import Result, ResultSection, Classification, SCORE, TEXT_FORMAT
 from assemblyline.al.common.av_result import VirusHitTag
 from assemblyline.al.service.base import ServiceBase
-from assemblyline.common.exceptions import RecoverableError
 
 log = logging.getLogger('assemblyline.svc.common.result')
 
@@ -82,12 +80,9 @@ class VirusTotalDynamic(ServiceBase):
         try:
             json_response = r.json()
         except ValueError:
-            self.log.warn("Invalid response from VirusTotal, "
-                          "HTTP code: %s, "
-                          "content length: %i, "
-                          "headers: %s" % (r.status_code, len(r.content), repr(r.headers)))
-            if len(r.content) == 0:
-                raise RecoverableError("VirusTotal didn't return a JSON object, HTTP code %s" % r.status_code)
+            if r.status_code == 204:
+                message = "You exceeded the public API request rate limit (4 requests of any nature per minute)"
+                raise VTException(message)
             raise
 
         # File has been scanned, if response is successful, let's get the response
@@ -104,7 +99,14 @@ class VirusTotalDynamic(ServiceBase):
             url = self.cfg.get('BASE_URL') + "file/report"
             params = {'apikey': self.api_key, 'resource': sha256}
             r = requests.post(url, params)
-            json_response = r.json()
+            try:
+                json_response = r.json()
+            except Exception:
+                if r.status_code == 204:
+                    message = "You exceeded the public API request rate limit (4 requests of any nature per minute)"
+                    raise VTException(message)
+                raise
+
             if 'scans' in json_response or json_response.get('response_code') <= 0:
                 break
             # Limit is 4 public API calls per minute, make sure we don't exceed quota
