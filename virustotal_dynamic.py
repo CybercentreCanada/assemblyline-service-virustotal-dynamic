@@ -107,7 +107,7 @@ class VirusTotalDynamic(ServiceBase):
                     raise VTException(message)
                 raise
 
-            if 'scans' in json_response or json_response.get('response_code') <= 0:
+            if 'scans' in json_response:
                 break
             # Limit is 4 public API calls per minute, make sure we don't exceed quota
             # time.sleep(20)
