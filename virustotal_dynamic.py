@@ -2,9 +2,10 @@ import json
 import time
 import logging
 
-from assemblyline.al.common.result import Result, ResultSection, Classification, SCORE, TEXT_FORMAT
-from assemblyline.al.common.av_result import VirusHitTag
-from assemblyline.al.service.base import ServiceBase
+import requests
+
+from assemblyline_v4_service.common.result import Result, ResultSection, Classification, BODY_FORMAT
+from assemblyline_v4_service.common.base import ServiceBase
 
 log = logging.getLogger('assemblyline.svc.common.result')
 
@@ -18,43 +19,24 @@ class VTException(Exception):
 
 
 class AvHitSection(ResultSection):
-    def __init__(self, av_name, virus_name, score):
+    def __init__(self, av_name, virus_name):
         title = '%s identified the file as %s' % (av_name, virus_name)
         super(AvHitSection, self).__init__(
             title_text=title,
-            score=score,
             classification=Classification.UNRESTRICTED)
 
 
 class VirusTotalDynamic(ServiceBase):
-    SERVICE_CATEGORY = "External"
-    SERVICE_DESCRIPTION = "This service submits files/URLs to VirusTotal for analysis."
-    SERVICE_ENABLED = False
-    SERVICE_REVISION = ServiceBase.parse_revision('$Id$')
-    SERVICE_STAGE = "CORE"
-    SERVICE_TIMEOUT = 600
-    SERVICE_IS_EXTERNAL = True
-    SERVICE_DEFAULT_CONFIG = {
-        'private_api': False,
-        'API_KEY': '',
-        'BASE_URL': 'https://www.virustotal.com/vtapi/v2/'
-    }
-
-    def __init__(self, cfg=None):
-        super(VirusTotalDynamic, self).__init__(cfg)
-        self.api_key = self.cfg.get('API_KEY')
-        self.private_api = self.cfg.get('private_api')
-
-    # noinspection PyGlobalUndefined,PyUnresolvedReferences
-    def import_service_deps(self):
-        global requests
-        import requests
+    def __init__(self, config=None):
+        super(VirusTotalDynamic, self).__init__(config)
+        self.api_key = self.config.get("api_key")
+        self.private_api = self.config.get("private_api")
 
     def start(self):
         self.log.debug("VirusTotal service started")
 
     def execute(self, request):
-        filename = request.download()
+        filename = request.file_path
         response = self.scan_file(request, filename)
         result = self.parse_results(response)
         if self.private_api:
@@ -67,11 +49,11 @@ class VirusTotalDynamic(ServiceBase):
     def scan_file(self, request, filename):
 
         # Let's scan the file
-        url = self.cfg.get('BASE_URL') + "file/scan"
+        url = self.config.get('BASE_URL') + "file/scan"
         try:
             f = open(filename, "rb")
         except:
-            print "Could not open file"
+            print("Could not open file")
             return {}
 
         files = {"file": f}
@@ -96,7 +78,7 @@ class VirusTotalDynamic(ServiceBase):
 
         # Have to wait for the file scan to be available -- might take a few minutes...
         while True:
-            url = self.cfg.get('BASE_URL') + "file/report"
+            url = self.config.get("base_url") + "file/report"
             params = {'apikey': self.api_key, 'resource': sha256}
             r = requests.post(url, params)
             try:
@@ -126,22 +108,23 @@ class VirusTotalDynamic(ServiceBase):
             message = "You tried to perform calls to functions for which you require a Private API key."
             raise VTException(message)
         elif response is not None and response.get('response_code') == 1:
-            av_hits = ResultSection(title_text='Anti-Virus Detections')
             url_section = ResultSection(
-                SCORE.NULL,
                 'Virus total report permalink',
-                self.SERVICE_CLASSIFICATION,
-                body_format=TEXT_FORMAT.URL,
+                body_format=BODY_FORMAT.URL,
                 body=json.dumps({"url": response.get('permalink')}))
             res.add_section(url_section)
 
+            av_hits = ResultSection('Anti-Virus Detections')
             scans = response.get('scans', response)
-            av_hits.add_line('Found %d AV hit(s) from %d scans.' % (response.get('positives'), response.get('total')))
-            for majorkey, subdict in sorted(scans.iteritems()):
+            av_hits.add_line(f'Found {response.get("positives")} AV hit(s) from {response.get("total")} scans.')
+            for majorkey, subdict in sorted(scans.items()):
                 if subdict['detected']:
                     virus_name = subdict['result']
-                    res.append_tag(VirusHitTag(virus_name, context="scanner:%s" % majorkey))
-                    av_hits.add_section(AvHitSection(majorkey, virus_name, SCORE.SURE))
-            res.add_result(av_hits)
+                    av_hit_section = AvHitSection(majorkey, virus_name)
+                    av_hit_section.set_heuristic(1, signature=f'{majorkey}.{virus_name}')
+                    av_hit_section.add_tag('av.virus_name', virus_name)
+                    av_hits.add_subsection(av_hit_section)
+
+            res.add_section(av_hits)
 
         return res
