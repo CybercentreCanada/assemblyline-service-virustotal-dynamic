@@ -9,7 +9,7 @@ rejects: empty|metadata/.*
 stage: CORE
 category: External
 
-file_require: true
+file_required: true
 timeout: 600
 disable_cache: false
 
