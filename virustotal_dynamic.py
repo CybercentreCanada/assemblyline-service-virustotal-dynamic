@@ -89,7 +89,6 @@ class VirusTotalDynamic(ServiceBase):
             if 'scans' in json_response:
                 break
             # Limit is 4 public API calls per minute, make sure we don't exceed quota
-            # time.sleep(20)
             time.sleep(20)
 
         return json_response
