@@ -20,7 +20,7 @@ class VTException(Exception):
 
 class AvHitSection(ResultSection):
     def __init__(self, av_name, virus_name):
-        title = '%s identified the file as %s' % (av_name, virus_name)
+        title = f'{av_name} identified the file as {virus_name}'
         super(AvHitSection, self).__init__(
             title_text=title,
             classification=Classification.UNRESTRICTED)
@@ -49,10 +49,10 @@ class VirusTotalDynamic(ServiceBase):
     def scan_file(self, request, filename):
 
         # Let's scan the file
-        url = self.config.get('BASE_URL') + "file/scan"
+        url = self.config.get("base_url") + "file/scan"
         try:
             f = open(filename, "rb")
-        except:
+        except ValueError:
             print("Could not open file")
             return {}
 
