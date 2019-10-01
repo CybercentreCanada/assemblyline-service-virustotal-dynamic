@@ -1,13 +1,10 @@
 import json
 import time
-import logging
 
 import requests
 
-from assemblyline_v4_service.common.result import Result, ResultSection, Classification, BODY_FORMAT
 from assemblyline_v4_service.common.base import ServiceBase
-
-log = logging.getLogger('assemblyline.svc.common.result')
+from assemblyline_v4_service.common.result import Result, ResultSection, Classification, BODY_FORMAT
 
 
 class VTException(Exception):
