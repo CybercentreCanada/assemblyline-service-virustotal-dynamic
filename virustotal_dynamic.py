@@ -30,7 +30,7 @@ class VirusTotalDynamic(ServiceBase):
         self.private_api = self.config.get("private_api")
 
     def start(self):
-        self.log.debug("VirusTotal service started")
+        self.log.debug("VirusTotalDynamic service started")
 
     def execute(self, request):
         filename = request.file_path

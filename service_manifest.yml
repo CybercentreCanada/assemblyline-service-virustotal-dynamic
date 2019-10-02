@@ -1,7 +1,7 @@
 name: VirusTotalDynamic
 version: 1
 description: >
-   This service submits the files/URLS to VirusTotal and returns the results
+   This service submits the files/URLS to VirusTotal and returns the results.
 
 accepts: .*
 rejects: empty|metadata/.*
