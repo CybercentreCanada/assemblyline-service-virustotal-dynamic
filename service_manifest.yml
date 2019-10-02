@@ -20,7 +20,7 @@ supported_platforms: [linux]
 
 config:
     private_api: 'False'
-    api_key: '22a915ef8dcf3395d620e23074d4a475dd786da4be7cf6c6debbd08e5e9c3e83'
+    api_key: ''
     base_url: 'https://www.virustotal.com/vtapi/v2/'
 
 submission_params: []
