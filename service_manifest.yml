@@ -1,0 +1,39 @@
+name: VirusTotalDynamic
+version: 1
+description: >
+   This service submits the files/URLS to VirusTotal and returns the results
+
+accepts: .*
+rejects: empty|metadata/.*
+
+stage: CORE
+category: External
+
+file_required: true
+timeout: 600
+disable_cache: false
+
+enabled: false
+is_external: true
+licence_count: 0
+supported_platforms: [linux]
+
+config:
+    private_api: 'False'
+    api_key: ''
+    base_url: 'https://www.virustotal.com/vtapi/v2/'
+
+submission_params: []
+
+heuristics:
+  - heur_id: 1
+    name: VirusTotal Dynamic AV Hit
+    score: 1000
+    filetype: '*'
+    description: A VirusTotal dynamic hash check returned an AV hit.
+    
+docker_config:
+    image: cccs/assemblyline-service-virustotaldynamic:latest
+    cpu_cores: 0.1
+    ram_mb: 128
+    
