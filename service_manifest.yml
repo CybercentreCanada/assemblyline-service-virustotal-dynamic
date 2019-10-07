@@ -23,7 +23,11 @@ config:
     api_key: ''
     base_url: 'https://www.virustotal.com/vtapi/v2/'
 
-submission_params: []
+submission_params:
+  - default: ''
+    name: api_key
+    type: str
+    value: ''
 
 heuristics:
   - heur_id: 1

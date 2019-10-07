@@ -1,5 +1,6 @@
 import json
 import time
+from typing import Dict, Any
 
 import requests
 
@@ -45,17 +46,17 @@ class VirusTotalDynamic(ServiceBase):
 
     # noinspection PyUnusedLocal
     def scan_file(self, request: ServiceRequest, filename: str):
+        api_key = None
+        try:
+            api_key = request.get_param('api_key')
+        except Exception:  # submission parameter not found
+            pass
 
         # Let's scan the file
         url = self.config.get("base_url") + "file/scan"
-        try:
-            f = open(filename, "rb")
-        except ValueError:
-            self.log.exception("Could not open file")
-            return {}
 
-        files = {"file": f}
-        params = {"apikey": self.api_key}
+        files = dict(file=open(filename, "rb"))
+        params = dict(apikey=api_key or self.api_key)
 
         json_response = None
         try:
@@ -89,7 +90,10 @@ class VirusTotalDynamic(ServiceBase):
         # Have to wait for the file scan to be available -- might take a few minutes...
         while True:
             url = self.config.get("base_url") + "file/report"
-            params = {'apikey': self.api_key, 'resource': sha256}
+            params = dict(
+                apikey=api_key or self.api_key,
+                resource=sha256,
+            )
 
             json_response = None
             try:
@@ -119,7 +123,7 @@ class VirusTotalDynamic(ServiceBase):
 
         return json_response
 
-    def parse_results(self, response):
+    def parse_results(self, response: Dict[str, Any]):
         res = Result()
         response = response.get('results', response)
 
