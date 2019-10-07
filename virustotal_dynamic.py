@@ -4,6 +4,7 @@ import time
 import requests
 
 from assemblyline_v4_service.common.base import ServiceBase
+from assemblyline_v4_service.common.request import ServiceRequest
 from assemblyline_v4_service.common.result import Result, ResultSection, Classification, BODY_FORMAT
 
 
@@ -32,7 +33,7 @@ class VirusTotalDynamic(ServiceBase):
     def start(self):
         self.log.debug("VirusTotalDynamic service started")
 
-    def execute(self, request):
+    def execute(self, request: ServiceRequest):
         filename = request.file_path
         response = self.scan_file(request, filename)
         result = self.parse_results(response)
@@ -43,29 +44,41 @@ class VirusTotalDynamic(ServiceBase):
         request.result = result
 
     # noinspection PyUnusedLocal
-    def scan_file(self, request, filename):
+    def scan_file(self, request: ServiceRequest, filename: str):
 
         # Let's scan the file
         url = self.config.get("base_url") + "file/scan"
         try:
             f = open(filename, "rb")
         except ValueError:
-            print("Could not open file")
+            self.log.exception("Could not open file")
             return {}
 
         files = {"file": f}
         params = {"apikey": self.api_key}
-        r = requests.post(url, params=params, files=files)
+
+        json_response = None
         try:
-            json_response = r.json()
-        except ValueError:
-            if r.status_code == 204:
+            r = requests.post(url, params=params, files=files)
+            r.raise_for_status()
+
+            if r.ok:
+                json_response = r.json()
+            elif r.status_code == 204:
                 message = "You exceeded the public API request rate limit (4 requests of any nature per minute)"
                 raise VTException(message)
+        except requests.ConnectionError:
+            self.log.exception(f"ConnectionError: Couldn't connect to: {url}")
+        except requests.HTTPError as e:
+            self.log.exception(str(e))
+            raise
+        except requests.exceptions.RequestException as e:  # All other types of exceptions
+            self.log.exception(str(e))
+            raise
+        except:
             raise
 
         # File has been scanned, if response is successful, let's get the response
-
         if json_response is not None and json_response.get('response_code') <= 0:
             return json_response
 
@@ -77,13 +90,26 @@ class VirusTotalDynamic(ServiceBase):
         while True:
             url = self.config.get("base_url") + "file/report"
             params = {'apikey': self.api_key, 'resource': sha256}
-            r = requests.post(url, params=params)
+
+            json_response = None
             try:
-                json_response = r.json()
-            except Exception:
-                if r.status_code == 204:
+                r = requests.post(url, params=params)
+                r.raise_for_status()
+
+                if r.ok:
+                    json_response = r.json()
+                elif r.status_code == 204:
                     message = "You exceeded the public API request rate limit (4 requests of any nature per minute)"
                     raise VTException(message)
+            except requests.ConnectionError:
+                self.log.exception(f"ConnectionError: Couldn't connect to: {url}")
+            except requests.HTTPError as e:
+                self.log.exception(str(e))
+                raise
+            except requests.exceptions.RequestException as e:  # All other types of exceptions
+                self.log.exception(str(e))
+                raise
+            except:
                 raise
 
             if 'scans' in json_response:
