@@ -20,9 +20,16 @@ class VTException(Exception):
 class AvHitSection(ResultSection):
     def __init__(self, av_name, virus_name):
         title = f'{av_name} identified the file as {virus_name}'
+        json_body = dict(
+            av_name=av_name,
+            virus_name=virus_name,
+        )
         super(AvHitSection, self).__init__(
             title_text=title,
-            classification=Classification.UNRESTRICTED)
+            classification=Classification.UNRESTRICTED,
+            body_format=BODY_FORMAT.JSON,
+            body=json.dumps(json_body),
+        )
 
 
 class VirusTotalDynamic(ServiceBase):
