@@ -27,7 +27,7 @@ class AvHitSection(ResultSection):
         super(AvHitSection, self).__init__(
             title_text=title,
             classification=Classification.UNRESTRICTED,
-            body_format=BODY_FORMAT.JSON,
+            body_format=BODY_FORMAT.KEY_VALUE,
             body=json.dumps(json_body),
         )
 
