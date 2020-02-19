@@ -36,7 +36,7 @@ heuristics:
     description: A VirusTotal dynamic hash check returned an AV hit.
     
 docker_config:
-  image: cccs/assemblyline-service-virustotal-dynamic:latest
+  image: ${REGISTRY}cccs/assemblyline-service-virustotal-dynamic:latest
   cpu_cores: 0.25
   ram_mb: 128
   allow_internet_access: true
