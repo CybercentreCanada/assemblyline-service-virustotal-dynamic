@@ -54,6 +54,7 @@ class VirusTotalDynamic(ServiceBase):
     # noinspection PyUnusedLocal
     def scan_file(self, request: ServiceRequest, filename: str):
         api_key = None
+        # noinspection PyBroadException
         try:
             api_key = request.get_param('api_key')
         except Exception:  # submission parameter not found
@@ -83,7 +84,7 @@ class VirusTotalDynamic(ServiceBase):
         except requests.exceptions.RequestException as e:  # All other types of exceptions
             self.log.exception(str(e))
             raise
-        except:
+        except Exception:
             raise
 
         # File has been scanned, if response is successful, let's get the response
@@ -120,7 +121,7 @@ class VirusTotalDynamic(ServiceBase):
             except requests.exceptions.RequestException as e:  # All other types of exceptions
                 self.log.exception(str(e))
                 raise
-            except:
+            except Exception:
                 raise
 
             if 'scans' in json_response:
@@ -130,7 +131,8 @@ class VirusTotalDynamic(ServiceBase):
 
         return json_response
 
-    def parse_results(self, response: Dict[str, Any]):
+    @staticmethod
+    def parse_results(response: Dict[str, Any]):
         res = Result()
         response = response.get('results', response)
 
