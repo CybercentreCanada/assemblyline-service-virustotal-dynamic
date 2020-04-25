@@ -53,12 +53,7 @@ class VirusTotalDynamic(ServiceBase):
 
     # noinspection PyUnusedLocal
     def scan_file(self, request: ServiceRequest, filename: str):
-        api_key = None
-        # noinspection PyBroadException
-        try:
-            api_key = request.get_param('api_key')
-        except Exception:  # submission parameter not found
-            pass
+        api_key = request.get_param('api_key', None)
 
         # Let's scan the file
         url = self.config.get("base_url") + "file/scan"
