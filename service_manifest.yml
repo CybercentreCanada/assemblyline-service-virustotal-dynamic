@@ -1,5 +1,5 @@
 name: VirusTotalDynamic
-version: 1
+version: $SERVICE_TAG
 description: >
   This service submits the files/URLS to VirusTotal and returns the results.
 
@@ -36,7 +36,7 @@ heuristics:
     description: A VirusTotal dynamic hash check returned an AV hit.
     
 docker_config:
-  image: ${REGISTRY}cccs/assemblyline-service-virustotal-dynamic:latest
+  image: ${REGISTRY}cccs/assemblyline-service-virustotal-dynamic:$SERVICE_TAG
   cpu_cores: 0.25
   ram_mb: 128
   allow_internet_access: true
