@@ -2,6 +2,9 @@ FROM cccs/assemblyline-v4-service-base:latest
 
 ENV SERVICE_PATH virustotal_dynamic.VirusTotalDynamic
 
+USER root
+RUN pip install vt-py
+
 # Switch to assemblyline user
 USER assemblyline
 

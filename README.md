@@ -6,7 +6,7 @@ This Assemblyline service submits the file to VirusTotal and returns the results
 
 ## Execution
 
-This service will actually submit the file to VirusTotal for analysis.
+This service will actually submit the file to VirusTotal for analysis over the v3 REST API.
 
 Because the file leaves the Assemblyline infrastructure, if selected by the user, it will prompt the user and notify them that their file or metadata related to their file will leave our system.
 
