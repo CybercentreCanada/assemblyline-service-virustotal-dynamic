@@ -62,17 +62,15 @@ class VirusTotalDynamic(ServiceBase):
     @staticmethod
     def parse_results(response: Dict[str, Any]):
         res = Result()
-
-        url_section = ResultSection(
-            'VirusTotal report permalink',
-            body_format=BODY_FORMAT.URL,
-            body=json.dumps({"url": f"https://www.virustotal.com/gui/{response['type']}/{response['id']}"}))
+        url_section = ResultSection('VirusTotal Analysis',
+                                    body_format=BODY_FORMAT.URL,
+                                    body=json.dumps({"url": f"https://www.virustotal.com/api/v3/analyses/{response['id']}"}))
         res.add_section(url_section)
-
-        scans = response['last_analysis_results']
+        response = response['attributes']
+        scans = response['results']
         av_hits = ResultSection('Anti-Virus Detections')
-        av_hits.add_line(f'Found {response["last_analysis_stats"]["malicious"]} AV hit(s) from '
-                         f'{len(response["last_analysis_results"].keys())}')
+        av_hits.add_line(f'Found {response["stats"]["malicious"]} AV hit(s) from '
+                         f'{len(response["results"].keys())}')
         for majorkey, subdict in sorted(scans.items()):
             if subdict['category'] == "malicious":
                 virus_name = subdict['result']
