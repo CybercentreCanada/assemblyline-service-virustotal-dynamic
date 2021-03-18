@@ -18,9 +18,7 @@ is_external: true
 licence_count: 0
 
 config:
-  private_api: ''
   api_key: ''
-  base_url: 'https://www.virustotal.com/vtapi/v2/'
 
 submission_params:
   - default: ''
