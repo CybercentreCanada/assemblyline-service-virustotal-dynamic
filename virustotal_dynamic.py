@@ -6,6 +6,7 @@ from assemblyline_v4_service.common.base import ServiceBase
 from assemblyline_v4_service.common.request import ServiceRequest
 from assemblyline_v4_service.common.result import Result, ResultSection, Classification, BODY_FORMAT
 
+MAX_RETRY = 3
 
 class AvHitSection(ResultSection):
     def __init__(self, av_name, virus_name):
@@ -36,28 +37,42 @@ class VirusTotalDynamic(ServiceBase):
         except Exception as e:
             self.log.error("No API key found for VirusTotal")
             raise e
-
-        response = self.scan_file(request)
+        response = None
+        if request.task.metadata.get('submitted_url', None) and request.task.depth == 0:
+            response = self.scan_url(request)
+        else:
+            response = self.scan_file(request)
         result = self.parse_results(response)
         request.result = result
 
-    # noinspection PyUnusedLocal
-    def scan_file(self, request: ServiceRequest):
-        filename = request.file_path
+    def common_scan(self, type: str, sample, retried: int = 0):
         json_response = None
-        with open(filename, "rb") as file_obj:
+        if retried < MAX_RETRY:
             try:
-                json_response = self.client.scan_file(file=file_obj, wait_for_completion=True).to_dict()
+                if type == 'file':
+                    json_response = self.client.scan_file(sample, wait_for_completion=True).to_dict()
+                else:
+                    json_response = self.client.scan_url(sample, wait_for_completion=True).to_dict()
             except APIError as e:
                 if "NotFoundError" in e.code:
-                    self.log.warning("VirusTotal has nothing on this file.")
+                    self.log.warning(f"VirusTotal has nothing on this {type}.")
                 elif "QuotaExceededError" in e.code:
                     self.log.warning("Quota Exceeded. Trying again in 60s")
                     time.sleep(60)
-                    return self.scan_file(request)
+                    retried += 1
+                    return self.common_scan(type, sample, retried)
                 else:
                     self.log.error(e)
-            return json_response
+        return json_response
+
+
+    # noinspection PyUnusedLocal
+    def scan_file(self, request: ServiceRequest):
+        with open(request.file_path, "rb") as file_obj:
+            return self.common_scan("file", file_obj)
+
+    def scan_url(self, request: ServiceRequest):
+        return self.common_scan("url", request.task.metadata.get('submitted_url'))
 
     @staticmethod
     def parse_results(response: Dict[str, Any]):
