@@ -17,22 +17,24 @@ enabled: false
 is_external: true
 licence_count: 0
 
+uses_metadata: true
+
 config:
-  api_key: ''
+  api_key: ""
 
 submission_params:
-  - default: ''
+  - default: ""
     name: api_key
     type: str
-    value: ''
+    value: ""
 
 heuristics:
   - heur_id: 1
     name: VirusTotal Dynamic AV Hit
     score: 1000
-    filetype: '*'
+    filetype: "*"
     description: A VirusTotal dynamic hash check returned an AV hit.
-    
+
 docker_config:
   image: ${REGISTRY}cccs/assemblyline-service-virustotal-dynamic:$SERVICE_TAG
   cpu_cores: 0.25
