@@ -18,6 +18,7 @@ is_external: true
 licence_count: 0
 
 uses_metadata: true
+privileged: true
 
 config:
   api_key: ""
@@ -38,5 +39,5 @@ heuristics:
 docker_config:
   image: ${REGISTRY}cccs/assemblyline-service-virustotal-dynamic:$SERVICE_TAG
   cpu_cores: 0.25
-  ram_mb: 128
+  ram_mb: 1024
   allow_internet_access: true
