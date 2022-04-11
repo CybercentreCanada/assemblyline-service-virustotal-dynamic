@@ -22,6 +22,7 @@ privileged: true
 
 config:
   api_key: ""
+  proxy: ""
 
 submission_params:
   - default: ""

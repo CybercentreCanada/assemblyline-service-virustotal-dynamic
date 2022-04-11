@@ -1,4 +1,5 @@
-import json, time
+import json
+import time
 from typing import Dict, Any
 from vt import Client, APIError
 
@@ -7,6 +8,7 @@ from assemblyline_v4_service.common.request import ServiceRequest
 from assemblyline_v4_service.common.result import Result, ResultSection, Classification, BODY_FORMAT
 
 MAX_RETRY = 3
+
 
 class AvHitSection(ResultSection):
     def __init__(self, av_name, virus_name):
@@ -33,7 +35,8 @@ class VirusTotalDynamic(ServiceBase):
 
     def execute(self, request: ServiceRequest):
         try:
-            self.client = Client(apikey=self.config.get("api_key", request.get_param("api_key")))
+            self.client = Client(apikey=self.config.get("api_key", request.get_param("api_key")),
+                                 proxy=self.config.get('proxy') or None)
         except Exception as e:
             self.log.error("No API key found for VirusTotal")
             raise e
@@ -65,8 +68,8 @@ class VirusTotalDynamic(ServiceBase):
                     self.log.error(e)
         return json_response
 
-
     # noinspection PyUnusedLocal
+
     def scan_file(self, request: ServiceRequest):
         with open(request.file_path, "rb") as file_obj:
             return self.common_scan("file", file_obj)
@@ -79,7 +82,9 @@ class VirusTotalDynamic(ServiceBase):
         res = Result()
         url_section = ResultSection('VirusTotal Analysis',
                                     body_format=BODY_FORMAT.URL,
-                                    body=json.dumps({"url": f"https://www.virustotal.com/api/v3/analyses/{response['id']}"}))
+                                    body=json.dumps({
+                                        "url": f"https://www.virustotal.com/api/v3/analyses/{response['id']}"
+                                    }))
         res.add_section(url_section)
         response = response['attributes']
         scans = response['results']
