@@ -1,3 +1,5 @@
+# DEPRECATED: Replaced by [assemblyline-service-virustotal](https://github.com/CybercentreCanada/assemblyline-service-virustotal)
+
 # VirusTotal Dynamic Service
 
 This Assemblyline service submits the file to VirusTotal and returns the results.
@@ -9,4 +11,3 @@ This Assemblyline service submits the file to VirusTotal and returns the results
 This service will actually submit the file to VirusTotal for analysis over the v3 REST API.
 
 Because the file leaves the Assemblyline infrastructure, if selected by the user, it will prompt the user and notify them that their file or metadata related to their file will leave our system.
-
